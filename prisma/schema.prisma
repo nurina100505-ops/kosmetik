@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model articles {
+  id         Int      @id @default(autoincrement())
+  title      String?  @db.VarChar(150)
+  content    String?  @db.Text
+  image      String?  @db.LongText
+  category   String?  @db.VarChar(100)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model brands {
+  id         Int        @id @default(autoincrement())
+  name       String     @db.VarChar(100)
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  products   products[]
+}
+
+model cart_items {
+  id         Int       @id @default(autoincrement())
+  cart_id    Int?
+  product_id Int?
+  quantity   Int?
+  carts      carts?    @relation(fields: [cart_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "cart_items_ibfk_1")
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "cart_items_ibfk_2")
+
+  @@index([cart_id], map: "cart_id")
+  @@index([product_id], map: "product_id")
+}
+
+model carts {
+  id         Int          @id @default(autoincrement())
+  user_id    Int?
+  created_at DateTime     @default(now()) @db.Timestamp(0)
+  cart_items cart_items[]
+  users      users?       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "carts_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model categories {
+  id         Int        @id @default(autoincrement())
+  name       String?    @db.VarChar(100)
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  products   products[]
+}
+
+model order_items {
+  id         Int       @id @default(autoincrement())
+  order_id   Int?
+  product_id Int?
+  quantity   Int?
+  price      Int?
+  orders     orders?   @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "order_items_ibfk_1")
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "order_items_ibfk_2")
+
+  @@index([order_id], map: "order_id")
+  @@index([product_id], map: "product_id")
+}
+
+model orders {
+  id              Int            @id @default(autoincrement())
+  user_id         Int?
+  total_price     Int?
+  status          orders_status? @default(pending)
+  payment_proof   String?        @db.VarChar(255)
+  address         String?        @db.Text
+  phone           String?        @db.VarChar(20)
+  created_at      DateTime       @default(now()) @db.Timestamp(0)
+  receiver_name   String?
+  shipping_method String?
+  order_items     order_items[]
+  users           users?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "orders_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model products {
+  id             Int           @id @default(autoincrement())
+  name           String?       @db.VarChar(150)
+  description    String?       @db.Text
+  price          Int?
+  stock          Int?
+  image          String?       @db.LongText
+  category_id    Int?
+  created_at     DateTime      @default(now()) @db.Timestamp(0)
+  brand_id       Int?
+  is_recommended Boolean       @default(false)
+  cart_items     cart_items[]
+  order_items    order_items[]
+  brands         brands?       @relation(fields: [brand_id], references: [id], map: "fk_brand")
+  categories     categories?   @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "products_ibfk_1")
+  reviews        reviews[]
+
+  @@index([category_id], map: "category_id")
+  @@index([brand_id], map: "fk_brand")
+}
+
+model reviews {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  product_id Int?
+  rating     Int?
+  comment    String?   @db.Text
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "reviews_ibfk_1")
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "reviews_ibfk_2")
+
+  @@index([product_id], map: "product_id")
+  @@index([user_id], map: "user_id")
+}
+
+model users {
+  id         Int        @id @default(autoincrement())
+  name       String?    @db.VarChar(100)
+  email      String     @unique
+  password   String
+  role       users_role @default(customer)
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  username   String     @unique
+  phone      String?    @db.VarChar(20)
+  gender     String?    @db.VarChar(20)
+  birth_date String?    @db.VarChar(50)
+  carts      carts[]
+  orders     orders[]
+  reviews    reviews[]
+}
+
+model admins {
+  id       Int     @id @default(autoincrement())
+  email    String? @unique(map: "email") @db.VarChar(100)
+  password String? @db.VarChar(255)
+}
+
+enum orders_status {
+  pending
+  paid
+  shipped
+  completed
+}
+
+enum users_role {
+  admin
+  customer
+}
