@@ -81,8 +81,8 @@ export async function GET() {
     });
 
     const produkIds = produkTerlaris.map(
-      (item) => item.product_id
-    );
+  (item: any) => item.product_id
+);
 
     const produkData = await prisma.products.findMany({
       where: {
@@ -92,10 +92,10 @@ export async function GET() {
       },
     });
 
-    const produkTerlarisFix = produkTerlaris.map((item) => {
-      const produk = produkData.find(
-        (p) => p.id === item.product_id
-      );
+    const produkTerlarisFix = produkTerlaris.map((item: any) => {
+     const produk = produkData.find(
+  (p: any) => p.id === item.product_id
+);
 
       return {
         nama: produk?.name,
