@@ -60,11 +60,11 @@ export async function GET() {
       total: 0,
     }));
 
-    orders.forEach((order) => {
-      const bulan = new Date(order.created_at).getMonth();
+    orders.forEach((order: { created_at: Date; total_price: number | null }) => {
+     const bulan = new Date(order.created_at).getMonth();
 
-      grafik[bulan].total += order.total_price || 0;
-    });
+  grafik[bulan].total += order.total_price || 0;
+});
 
     // PRODUK TERLARIS
     const produkTerlaris = await prisma.order_items.groupBy({
