@@ -23,11 +23,11 @@ export async function GET() {
     // TOTAL PENDAPATAN
     const orders = await prisma.orders.findMany();
 
-    const totalRevenue = orders.reduce(
-      (acc, item) =>
-        acc + (item.total_price || 0),
-      0
-    );
+   const totalRevenue = orders.reduce(
+  (acc: number, item: any) =>
+    acc + (item.total_price || 0),
+  0
+);
 
     // PESANAN TERBARU
     const latestOrders =
